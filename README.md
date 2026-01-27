@@ -54,7 +54,7 @@ Make sure you have the following installed on your machine:
 **Cloning the Repository**
 
 ```bash
-git clone https://github.com/adrianhajdin/subscription-tracker-api.git
+https://github.com/RishiPandey9/subscription-tracker-api.git
 cd subscription-tracker-api
 ```
 
