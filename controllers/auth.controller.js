@@ -12,6 +12,13 @@ export const signUp = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
+    // Validate required fields
+    if (!name || !email || !password) {
+      const error = new Error('Name, email, and password are required');
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Check if a user already exists
     const existingUser = await User.findOne({ email });
 
@@ -32,12 +39,16 @@ export const signUp = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Exclude password from response
+    const userResponse = newUsers[0].toObject();
+    delete userResponse.password;
+
     res.status(201).json({
       success: true,
       message: 'User created successfully',
       data: {
         token,
-        user: newUsers[0],
+        user: userResponse,
       }
     })
   } catch (error) {
@@ -50,6 +61,12 @@ export const signUp = async (req, res, next) => {
 export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      const error = new Error('Email and password are required');
+      error.statusCode = 400;
+      throw error;
+    }
 
     const user = await User.findOne({ email });
 
@@ -69,12 +86,16 @@ export const signIn = async (req, res, next) => {
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
+    // Exclude password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
     res.status(200).json({
       success: true,
       message: 'User signed in successfully',
       data: {
         token,
-        user,
+        user: userResponse,
       }
     });
   } catch (error) {
@@ -82,4 +103,15 @@ export const signIn = async (req, res, next) => {
   }
 }
 
-export const signOut = async (req, res, next) => {}
+export const signOut = async (req, res, next) => {
+  try {
+    // Since we use stateless JWT tokens, sign-out is handled client-side
+    // by removing the token. This endpoint confirms the action.
+    res.status(200).json({
+      success: true,
+      message: 'User signed out successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
